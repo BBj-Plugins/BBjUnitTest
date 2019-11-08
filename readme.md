@@ -24,10 +24,10 @@ This plug-in requires the lib/BBjUnitTest.jar to be added to session's classpath
 
 The plug-in has a set of options which can be used to alternate its behavior. The following options can be used:
 
-|                | Name             | Description                                                             |
-|----------------|------------------|-------------------------------------------------------------------------|
-| --f            | Force overwrite  | Causes the plugin to overwrite any existing output file without nagging |
-| --o <FileName> | Output file path | Sets the output file path                                               |
-| --q            | Quiet Execution  | Supresses Exceptions causing the program to continue its execution      |
+|                         | Name             | Description                                                             |
+|-------------------------|------------------|-------------------------------------------------------------------------|
+| ``` --f ```             | Force overwrite  | Causes the plugin to overwrite any existing output file without nagging |
+| ``` --o <File path> ``` | Output file path | Sets the output file path                                               |
+| ``` --q ```             | Quiet Execution  | Supresses Exceptions causing the program to continue its execution      |
 
 **Note:** The plugin options should be placed last in the command.
