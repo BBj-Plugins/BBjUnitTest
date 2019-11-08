@@ -1,0 +1,30 @@
+rem Class with basic math operations
+class public MathOperations
+
+    rem returns the multiplicated value of the two given numbers
+    method public BBjNumber mult(BBjNumber a, BBjNumber b)
+        methodret a*b
+    methodend
+    
+    rem returns the value of the addition of the given number
+    method public BBjNumber add(BBjNumber a, BBjNumber b)
+        methodret a+b
+    methodend
+    
+    rem returns value of the substraction of the given numbers
+    method public BBjNumber sub(BBjNumber a, BBjNumber b)
+        methodret a-b
+    methodend
+    
+    rem returns the division of the first given number by the second one
+    rem if the second given number is 0 then an Exception will be thrown
+    method public BBjNumber div(BBjNumber a, BBjNumber b)
+        #sub(1,1)
+        if b = 0 then
+            throw "Its impossible to divide by 0", 93
+        fi 
+        methodret a/b
+    methodend 
+    
+classend
+

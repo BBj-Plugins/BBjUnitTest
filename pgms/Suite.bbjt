@@ -1,0 +1,6 @@
+use ::TestMathOperations.bbjt::TestMathOperations
+use ::TestMathOperations2.bbjt::MyDemo
+
+rem @SuiteClasses("TestMathOperations", "MyDemo")
+class public Suite
+classend

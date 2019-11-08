@@ -1,0 +1,201 @@
+use com.basis.bbjutilities.bbjunittest.internal.BBjUnitTestCodeReader
+use com.basis.bbjutilities.bbjunittest.internal.BBjUnitTestCore
+use com.basis.bbjutilities.bbjunittest.internal.BBjUnitTestModuleService
+use com.basis.bbjutilities.bbjunittest.internal.ExecutionOptions
+use com.basis.bbjutilities.bbjunittest.objects.BBjUnitTestClass
+use com.basis.bbjutilities.bbjunittest.objects.BBjUnitTestSuite
+
+use java.util.ArrayList
+use java.util.HashMap
+use java.util.Iterator
+
+class public BBjUnitTest
+
+    rem the Path to the BBj.exe
+    field private BBjString pathToBBj$
+
+    rem The working directory to use for the execution
+    field private BBjString workingDirectory$
+
+    rem the path of the config file to use 
+    field private BBjString configFilePath$
+
+    rem The main object to interact with the BBjUnitTest service
+    field private BBjUnitTestCore core!
+
+    rem The list of files to execute(.bbjt files)
+    field private ArrayList fileList!
+
+    rem The object used to retrieve details about the execution of the unit test cases
+    field private BBjUnitTestModuleService moduleService!
+
+    method public BBjUnitTest()
+        #fileList! = new ArrayList()
+        #core! = new BBjUnitTestCore()
+
+        #initialiseValues()
+        #initialiseFileList()
+
+        rem retrieve and set the execution options if existing
+        options! = #getExecutionOptions()
+        if(options! <> null()) then
+            #core!.setExecutionOptions(options!)
+        endif
+
+        if(#fileList! <> null() AND !#fileList!.isEmpty()) then
+            #core!.setBBjUnitTestFiles(#fileList!)
+
+            if(#core!.isCodeMissing()) then
+
+                declare auto ArrayList missingCodeFileNames!
+
+                while(#core!.isCodeMissing())
+                     missingCodeFileNames! = #core!.getFileNamesForMissingCode()
+
+                     list! = #getMissingFiles(missingCodeFileNames!)
+
+                     #core!.setMissingFiles(list!)
+                wend
+            fi
+
+            declare auto BBjCommandLineObject cmdObj!
+            cmdObj! = BBjAPI().getConfig().getCommandLineObject()
+            cmdObj!.setConfigFile(#configFilePath$)
+            cmdObj!.setWorkingDirectory(#workingDirectory$)
+            cmdObj!.setProgramName(#core!.generateProgramFiles().toString())
+            cmdObj!.setQuiet(1)
+            rem BBjAPI().newBBjSession(cmdObj!)
+            BBjAPI().newSynchBBjSession(cmdObj!)
+            #core!.parseResultFile()
+            #moduleService! = #core!.getModuleService()
+        fi
+    methodend
+
+    method public BBjUnitTestModuleService getModuleService()
+        methodret #moduleService!
+    methodend
+
+    method public ExecutionOptions getExecutionOptions()
+        index = 1
+
+        while index < argc
+            argument$ = argv(index)
+
+            rem skipping everything that isn't an option = doesn't start with a dash 
+            if(argument$(1,2) = "--") then
+                if(ExecutionOptions.isExecutionOptionValid(argument$)) then
+                    if(options! = null()) then
+                        options! = new ExecutionOptions()
+                    endif
+
+                    options!.addExecutionOption(argument$)
+                endif
+            endif
+
+            index = index + 1
+        wend
+
+        methodret options!
+    methodend
+
+    method private ArrayList getMissingFiles(ArrayList fileNameList!)
+        if(fileNameList! <> null() AND !fileNameList!.isEmpty()) then
+            fileList! = new ArrayList()
+            it! = fileNameList!.iterator()
+
+            while(it!.hasNext())
+                fileList!.add(new java.io.File(#getFullFilePath(it!.next())))
+            wend
+
+            methodret fileList!
+        fi
+        methodret null()
+    methodend
+
+    method private HashMap getMissingCode(ArrayList list!)
+        if(list! <> null() AND !list!.isEmpty()) then
+            declare auto Iterator it!
+            it! = list!.iterator()
+
+            declare auto HashMap map!
+            map! = new HashMap()
+
+            while(it!.hasNext())
+                fileSubPath$ = it!.next()
+                filePath$ = #getFullFilePath(fileSubPath$)
+                lines! = BBjUnitTestCodeReader.getCodeLines(filePath$)
+                map!.put(fileSubPath$, lines!)
+            wend
+
+            methodret map!
+        fi
+
+        methodret null()
+    methodend
+
+    method private void initialiseValues()
+        #pathToBBj$ = argv(0)
+        #workingDirectory$ = dsk("") + dir("")
+        #configFilePath$ = BBjAPI().getConfig().getConfigFileName()
+    methodend
+
+    method private BBjString getFullFilePath(BBjString subPath$)
+        filePath$ = BBjAPI().getFileSystem().resolvePath(subPath$)
+        methodret filePath$
+    methodend
+
+    method private void initialiseFileList()
+        index = 1
+
+        while index < argc
+            argument$ = argv(index)
+
+            rem skipping the options 
+            if(argument$(1,2) <> "--") then
+                fileName$ = #getFullFilePath(argument$)
+
+                rem lines! = BBjUnitTestCodeReader.getCodeLines(fileName$)
+                rem file! = new java.io.File(fileName$(pos("/" = fileName$, -1)+1))
+
+                file! = new java.io.File(fileName$)
+
+                #fileList!.add(file!)
+            endif
+
+            index = index + 1
+        wend
+    methodend
+
+classend
+
+declare auto BBjUnitTest ut!
+ut! = new BBjUnitTest()
+
+ms! = ut!.getModuleService()
+
+if(ms!.haveErrorsOccurred()) then
+    print "Some errors occurred while executing the test methods"
+    print $0A$
+
+    print "Executed Test Methods Count: " + str(ms!.getExecutedTestCount())
+    print $0A$
+
+    print "Execution Errors Count: " + str(ms!.getExecutionErrorCount())
+    print "Assertion Errors Count: " + str(ms!.getAssertionErrorCount())
+    print $0A$
+
+    failedMethodList! =  ms!.getFailedTestMethods()
+    it! = failedMethodList!.iterator()
+
+    print "The following Methods failed: "
+    while(it!.hasNext())
+        method! = it!.next()
+        print "Class: " + method!.getUnitTestClass().getClassName() + $09$ + "Method name: " + method!.getMethodName()
+    wend
+
+    print $0A$
+endif
+
+if(ms!.getResultFile() <> null()) then
+    print "The XML result file can be found here: " + str(ms!.getResultFile().getAbsolutePath())
+endif

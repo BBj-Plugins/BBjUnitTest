@@ -1,0 +1,42 @@
+use ::MathOperations.bbj::MathOperations
+
+class public MyDemo
+
+    field private MathOperations mathOperations!
+    
+    rem @Before
+    method public void setup()
+        #mathOperations! = new MathOperations()
+    methodend
+    
+    rem @Test
+    method public void addTest()         
+        Assert.Equals(#mathOperations!.add(-9,1),-9)
+        Assert.Equals(#mathOperations!.add(0,8),8)
+        Assert.Equals(#mathOperations!.add(-9,-8),-17)
+    methodend
+    
+    rem @Test
+    method public void multTest()
+        Assert.Equals(#mathOperations!.mult(8,8),64)
+        Assert.Equals(#mathOperations!.mult(0,8),0)
+        Assert.Equals(#mathOperations!.mult(-6,8),-48)
+        Assert.Equals(#mathOperations!.mult(-6,-6),36)
+    methodend
+    
+    rem @Test
+    method public void subTest()
+        Assert.Equals(#mathOperations!.sub(50,27),25)
+        Assert.Equals(#mathOperations!.sub(5,8),-3)
+        Assert.Equals(#mathOperations!.sub(-15,-15),0)
+        Assert.Equals(#mathOperations!.sub(-15,0),-15)
+    methodend
+    
+    rem @Test
+    method public void divTest()
+        Assert.Equals(#mathOperations!.div(50,10),5)
+        Assert.Equals(#mathOperations!.div(20,-2),-10)
+        Assert.Expect(#mathOperations!.div(20,0),93)
+    methodend
+      
+classend
