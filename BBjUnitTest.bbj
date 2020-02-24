@@ -191,6 +191,7 @@ if(ms!.haveErrorsOccurred()) then
     while(it!.hasNext())
         method! = it!.next()
         print "Class: " + method!.getUnitTestClass().getClassName() + $09$ + "Method name: " + method!.getMethodName()
+        print "Cause: " + method!.getError().getDescription()
     wend
 
     print $0A$
